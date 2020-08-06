@@ -5,8 +5,11 @@
  */
 package io.github.kieckegard.sparkjava.di.boilerplate.application;
 
+import io.github.kieckegard.sparkjava.di.boilerplate.application.common.context.request.RequestContextHolderLifeCycle;
 import io.github.kieckegard.sparkjava.di.boilerplate.application.v1.V1Router;
 import org.springframework.stereotype.Component;
+import static spark.Spark.afterAfter;
+import static spark.Spark.before;
 import static spark.Spark.port;
 
 /**
@@ -31,5 +34,22 @@ public class Application {
         
         port(this.settings.getPort());
         this.v1Router.init();
+        
+        /**
+         * starting a request context bound to this httpServletRequest
+         */
+        before((request, response) -> {
+            RequestContextHolderLifeCycle
+                    .requestInitialized(request.raw());
+        });
+        
+        /**
+         * destroying the request context, after all the request process
+         */
+        afterAfter((request, response) -> {
+            RequestContextHolderLifeCycle
+                    .requestDestroyed(request.raw());
+        });
+        
     }
 }
